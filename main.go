@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
+
+const webHookURL = "https://7873832d.ngrok.io"
 
 //Config ...
 type Config struct {
@@ -16,6 +19,15 @@ type Config struct {
 }
 
 func main() {
+	proxyURL, err := url.Parse("http://94.23.93.151:3128")
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	httpClient := http.Client{
+		Transport: &http.Transport{Proxy: http.ProxyURL(proxyURL)}}
+
 	file, err := os.Open("config.json")
 
 	if err != nil {
@@ -26,17 +38,34 @@ func main() {
 
 	err = json.NewDecoder(file).Decode(&currentConfig)
 
-	bot, err := tgbotapi.NewBotAPI(currentConfig.Token)
+	bot, err := tgbotapi.NewBotAPIWithClient(currentConfig.Token, &httpClient)
 
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	go http.ListenAndServe("127.0.0.1:8080", nil)
-	updates := bot.ListenForWebhook("/" + bot.Token)
+	bot.Debug = true
+
+	bot.Client.Transport = &http.Transport{
+		Proxy: http.ProxyURL(proxyURL)}
+
+	/*_, err = bot.SetWebhook(tgbotapi.NewWebhook(webHookURL))
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	updates := bot.ListenForWebhook("/")*/
+
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+
+	updates, err := bot.GetUpdatesChan(u)
+	go http.ListenAndServe(":8080", nil)
+	fmt.Println("server started...")
 
 	for update := range updates {
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text+RandStringRunes(8))
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text+" "+RandStringRunes(8))
 		msg.ReplyToMessageID = update.Message.MessageID
 		bot.Send(msg)
 
