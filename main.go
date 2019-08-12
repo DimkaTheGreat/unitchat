@@ -11,22 +11,15 @@ import (
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-const webHookURL = "https://7873832d.ngrok.io"
-
 //Config ...
 type Config struct {
-	Token string `json :"token"`
+	Token      string `json :"token"`
+	WebhookURL string `json:"webhookURL"`
 }
 
+const proxy = "http://94.23.93.151:3128"
+
 func main() {
-	proxyURL, err := url.Parse("http://94.23.93.151:3128")
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	httpClient := http.Client{
-		Transport: &http.Transport{Proxy: http.ProxyURL(proxyURL)}}
 
 	file, err := os.Open("config.json")
 
@@ -37,6 +30,15 @@ func main() {
 	currentConfig := Config{}
 
 	err = json.NewDecoder(file).Decode(&currentConfig)
+
+	proxyURL, err := url.Parse(proxy)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	httpClient := http.Client{
+		Transport: &http.Transport{Proxy: http.ProxyURL(proxyURL)}}
 
 	bot, err := tgbotapi.NewBotAPIWithClient(currentConfig.Token, &httpClient)
 
@@ -49,14 +51,23 @@ func main() {
 	bot.Client.Transport = &http.Transport{
 		Proxy: http.ProxyURL(proxyURL)}
 
-	/*_, err = bot.SetWebhook(tgbotapi.NewWebhook(webHookURL))
+	//webhook options
+	/*_, err = bot.RemoveWebhook()
 
 	if err != nil {
 		fmt.Println(err)
 	}
+	_, err = bot.SetWebhook(tgbotapi.NewWebhook(config.webHookURL))
 
-	updates := bot.ListenForWebhook("/")*/
+	info, err := bot.GetWebhookInfo()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(info)
 
+	if err != nil {
+		fmt.Println(err)
+	} updates := bot.ListenForWebhook("/")*/
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
@@ -84,7 +95,3 @@ func RandStringRunes(n int) string {
 	}
 	return string(b)
 }
-
-//set webhook string
-
-//https://api.telegram.org/bot972295397:AAEiO9wfDNVd1ec_M6dI1EW8ZMCfGyabW_w/setWebhook?url=https://a9ed699d.ngrok.io/972295397:AAEiO9wfDNVd1ec_M6dI1EW8ZMCfGyabW_w
