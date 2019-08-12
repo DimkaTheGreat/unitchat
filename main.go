@@ -52,12 +52,12 @@ func main() {
 		Proxy: http.ProxyURL(proxyURL)}
 
 	//webhook options
-	/*_, err = bot.RemoveWebhook()
+	_, err = bot.RemoveWebhook()
 
 	if err != nil {
 		fmt.Println(err)
 	}
-	_, err = bot.SetWebhook(tgbotapi.NewWebhook(config.webHookURL))
+	_, err = bot.SetWebhook(tgbotapi.NewWebhook(currentConfig.WebhookURL))
 
 	info, err := bot.GetWebhookInfo()
 	if err != nil {
@@ -67,15 +67,18 @@ func main() {
 
 	if err != nil {
 		fmt.Println(err)
-	} updates := bot.ListenForWebhook("/")*/
-	u := tgbotapi.NewUpdate(0)
+	}
+	updates := bot.ListenForWebhook("/")
+	/*u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
-	updates, err := bot.GetUpdatesChan(u)
+	updates, err := bot.GetUpdatesChan(u)*/
+
 	go http.ListenAndServe(":8080", nil)
 	fmt.Println("server started...")
 
 	for update := range updates {
+
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text+" "+RandStringRunes(8))
 		msg.ReplyToMessageID = update.Message.MessageID
 		bot.Send(msg)
