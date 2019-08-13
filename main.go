@@ -51,7 +51,6 @@ func main() {
 	bot.Client.Transport = &http.Transport{
 		Proxy: http.ProxyURL(proxyURL)}
 
-	//webhook options
 	_, err = bot.RemoveWebhook()
 
 	if err != nil {
@@ -69,6 +68,8 @@ func main() {
 		fmt.Println(err)
 	}
 	updates := bot.ListenForWebhook("/")
+
+	//for polling method
 	/*u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
